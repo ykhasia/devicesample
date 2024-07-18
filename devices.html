@@ -11,6 +11,7 @@
 <body>  
 
 <div class="controlPanel">
+    <button id="introduction" class="btn">使用说明</button>
     <button id="resetScreen" class="btn">清屏</button>
     <button id="mobileOrPC" class="btn">PC端</button>
     <button id="doubleOrSingle" class="btn">单屏</button>
@@ -28,20 +29,21 @@
 <div class="introduction" title="点击隐藏或显示">
 	<p>1，基于chrome浏览器的壁纸样机生成器</p>
 	<p>2，移动端尺寸：852X1789；PC端尺寸:2016X1260</p>
-	<p>3，将浏览器缩放至30%至50%以便正常使用</p>
+	<p>3，不联网无法使用</p>
 </div>
 </body>  
 
 
 <style>  
 .introduction {
+	display:none;
 	position: absolute;
-	left:0%;
+	left: 0%;
 	top:15%;
-	width:40%;
+	width: 49%;
 	height: 30%;
 	font-family: Arial, sans-serif; /* 设置字体 */
-	font-size: 16px; /* 设置字体大小 */
+	font-size: 40px; /* 设置字体大小 */
 	color: rgb(255, 0, 0); /* 设置文字颜色 */
 	line-height: 1.6; /* 设置行高 */
 	margin: 20px 0; /* 上下外边距 */
@@ -50,7 +52,7 @@
 	border-radius: 5px; /* 边框圆角 */
 	background-color: #f9f9f9; /* 背景色 */
 	box-shadow: 7px 5px 4px rgb(29 27 27 / 43%); /* 阴影效果 */
-	max-width: 600px; /* 最大宽度 */
+	/* max-width: 600px; */ /* 最大宽度 */
 	margin: auto; /* 水平居中 */
 }  
 .bgmask {
@@ -81,17 +83,17 @@
 .controlPanel {
 	position:fixed;
 	top:0%;
-	left:0%;
-	width:100%;
+	/* left:0%; */
+	/* width:100%; */
 	font-size:32px;
 	font-weight:bolder;
 	background-color:#02007f4d;
 	box-shadow:5px 5px 5px 0px rgb(126 123 123 / 83%);
 	display:grid;
-	grid-template-columns:repeat(8, 1fr);
+	/* grid-template-columns: repeat(8, 200px); */
 	justify-content:center;
 	align-items:center;
-	height:7vh;
+	height: 7%;
 	z-index:2;
 }
 .controlPanel *{
@@ -118,6 +120,7 @@
 	background-color: rgb(71 89 108);
 	font-size: 28px;
 	color: #ffffff;
+	max-width:100%;
 }
 .controlPanel input::placeholder{
 	color: white; 
@@ -170,7 +173,7 @@ body {
 	display:flex;
 	justify-content:center;
 	align-items:center;
-	height:auto;
+	height:100%;
 	margin:0;
 	box-sizing:border-box;
 	margin:0;
@@ -373,14 +376,37 @@ body {
 
 </style>  
 <script>
+$(document).ready(function() {
+	//rotateScreen();
+	initScreen();
+	bindEvent();
+	inputWithDefault();
+	$('body').css('transform','scale(0.5)');
+	resetCtrlPanel();
+	$('.app-icons-container').focus();
+	console.log($('.second_container').offset())
+	$('html, body').animate({  
+	    scrollTop: $('.second_container').offset().top,
+	    scrollLeft: $('.second_container').offset().left-200
+	}, 500); 
+});
+
+function resetCtrlPanel(){
+	let bodyW = $('.second_container').css('width').replace('px','');
+	bodyW = Math.floor(Number(bodyW));
+	let colCount = 8;
+	let colWidth = Math.floor(bodyW/colCount);
+	$('.controlPanel').css('grid-template-columns','repeat('+colCount+', '+colWidth+'px)');
+}
+
+
 function DeviceConfig(type, screenWidth, screenHeight, iconsRowCount,iconCntOneRow){
 	this.type=type;
 	this.iconsRowCount=iconsRowCount;
 	this.screenWidth=screenWidth;
 	this.screenHeight=screenHeight;
 	this.iconCntOneRow=iconCntOneRow;
-	this.adjustWidth=100;
-	this.adjustHeight=200;
+	this.enlarge='scale(1.1)';
 	this.createdScreens={};
 }
 DeviceConfig.prototype.commonResizeBoard=function(rootWidth, rootHeight){
@@ -392,6 +418,8 @@ DeviceConfig.prototype.commonResizeBoard=function(rootWidth, rootHeight){
 		uploadImg(this);
 		event.stopPropagation();
 	});
+	$('body,html').css('width',rootWidth);
+	
 }
 DeviceConfig.prototype.commonEvent=function(){
 	$('#jinrishici-sentence').hover(function(event){
@@ -439,14 +467,14 @@ PC.prototype.resizeBoard=function(){
 PC.prototype.createScreens = function(){
 	let existScreenCount = Object.keys(this.createdScreens).length;
 	this.clear();
-	let width=context.getDevice().screenWidth;
-	let height=context.getDevice().screenHeight;
 	if(existScreenCount==1 || existScreenCount==0){
-		createHomeScreen(width,height);
-		createLockScreen(width,height);
+		createHomeScreen();
+		createLockScreen();
 	}
 	if(existScreenCount==2){
-		createHomeScreen(width+context.getDevice().adjustWidth,height+context.getDevice().adjustHeight);
+		createHomeScreen();
+		let $home = context.getDevice()['createdScreens']['home'];
+		$home[0].style.transform = this.enlarge;
 	}
 	this.screenLayout();
 	this.commonEvent();
@@ -491,14 +519,14 @@ Mobile.prototype.resizeBoard=function(){
 Mobile.prototype.createScreens = function(){
 	let existScreenCount = Object.keys(this.createdScreens).length;
 	this.clear();
-	let width=context.getDevice().screenWidth;
-	let height=context.getDevice().screenHeight;
 	if(existScreenCount==1 || existScreenCount==0){
-		createHomeScreen(width,height);
-		createLockScreen(width,height);
+		createHomeScreen();
+		createLockScreen();
 	}
 	if(existScreenCount==2){
-		createHomeScreen(width+context.getDevice().adjustWidth,height+context.getDevice().adjustHeight);
+		createHomeScreen();
+		let $home = context.getDevice()['createdScreens']['home'];
+		$home[0].style.transform = this.enlarge;
 	}
 	this.screenLayout();
 	this.commonEvent();
@@ -574,21 +602,15 @@ let screenTemplate={
 
 let LS_KEY={PREFIX:'wallpaper_',FONT_COLOR:'fontcolor',BG_COLOR:'bgcolor',WATERMARK:'watermark'}
 let kfMap={}
-$(document).ready(function() {
-	//rotateScreen();
-	initScreen();
-	bindEvent();
-	inputWithDefault();
- });
 
-function createThirdContainer(iphoneScreen,key,width,height){
+function createThirdContainer(iphoneScreen,key){
 	let st = screenTemplate;
 	iphoneScreen.append(st.dynamic_island);
 	iphoneScreen.append(st.status_bar);
 	iphoneScreen.append(st.time_display);
 	iphoneScreen.append(st.bottom_line);
-	iphoneScreen.css('width',width);
-	iphoneScreen.css('height',height);
+	iphoneScreen.css('width',context.getDevice().screenWidth);
+	iphoneScreen.css('height',context.getDevice().screenHeight);
 	
 	let tc = $(st.third_container);
 	tc.append(st.watermark);
@@ -606,39 +628,33 @@ function createThirdContainer(iphoneScreen,key,width,height){
 	return tc;
 }
 function saveAsImage() {
+	$('body').css('transform','scale(1)');
 	if($('div.third_container').eq(1).length){
-		let screenWidth = context.getDevice().screenWidth;
-		let screenHeight = context.getDevice().screenHeight;
-		let adjustWidth = context.getDevice().adjustWidth;
-		let adjustHeight = context.getDevice().adjustHeight;
 		let $home = context.getDevice().createdScreens['home'];
 		let $lock = context.getDevice().createdScreens['lock'];
 		context.getDevice().screenLayout();
 		doSave().then(function(success) {  
 			$('div.third_container').eq(1).css('display','none');
 			context.getDevice().screenLayout();
-			$home.find('.iphone-screen').css('width',screenWidth+adjustWidth);
-			$home.find('.iphone-screen').css('height',screenHeight+adjustHeight);
-			$lock.find('.iphone-screen').css('width',screenWidth+adjustWidth);
-			$lock.find('.iphone-screen').css('height',screenHeight+adjustHeight);
+			$home[0].style.transform = this.enlarge;
+			$lock[0].style.transform = this.enlarge;
 			doSave().then(function(success) {  
 			    $('div.third_container').eq(0).css('display','none');
 				$('div.third_container').eq(1).css('display','grid');
 				context.getDevice().screenLayout();
 				doSave().then(function(success) {
-					$home.find('.iphone-screen').css('width',screenWidth);
-					$home.find('.iphone-screen').css('height',screenHeight);
-					$lock.find('.iphone-screen').css('width',screenWidth);
-					$lock.find('.iphone-screen').css('height',screenHeight);
-					
-					//$('.second_container').css('grid-template-columns','1fr 1fr');
+					$home[0].style.transform = 'scale(1)';
+					$lock[0].style.transform = 'scale(1)';
+					$('body').css('transform','scale(0.5)');
 					$('div.third_container').css('display','grid');
 					context.getDevice().screenLayout();
 				});
 			})
 		});
 	}else{
-		doSave();
+		doSave().then(function(){
+			$('body').css('transform','scale(0.5)');
+		});
 	}
 }
 function createLockScreen(width,height){
@@ -654,19 +670,26 @@ function createLockScreen(width,height){
 	randomWeather();
 	tc.find('.desc_top').html('Lock Screen');
 }
-function createHomeScreen(width,height){
+function createHomeScreen(){
 	let st = screenTemplate;
 	let is = $(st.iphone_screen);
 	is.append(st.sentence);
 	is.append(st.app_icons_container);
 	is.append(st.bottom_bar);
-	let tc = createThirdContainer(is,'home',width,height);
+	let tc = createThirdContainer(is,'home');
 	tc.find('.desc_top').html('Home Screen');
 	let aic = tc.find('.app-icons-container');
 	batchCreateAppItems(aic);
 	randomRealAppIcons(4);
 }
 function bindEvent(){
+	$('#introduction').click(function(){
+		if($('.introduction').css('display')=='none'){
+			$('.introduction').css('display','block');
+		}else{
+			$('.introduction').css('display','none');
+		}
+	});
 	$('#doubleOrSingle').click(function(){
 		context.getDevice().createScreens();
 		let screenCount = Object.keys(context.getDevice().createdScreens).length;
@@ -703,7 +726,7 @@ function bindEvent(){
 		adjustFontSize($('.watermark-container'));
 	});
 	
-	bindHideOrShow(['.dynamic-island','.introduction']);
+	bindHideOrShow(['.dynamic-island']);
 	
 	$('#mobileOrPC').click(function(){
 		context.getDevice().clear();
